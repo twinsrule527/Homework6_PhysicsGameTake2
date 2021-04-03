@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 //Controller for the player - Uses wheels and a jump function
     //Heavily referenced in-class demo of wheel colliders as well as Unity Tutorial page (https://docs.unity3d.com/Manual/WheelColliderTutorial.html) to do this
 public class WheelController : MonoBehaviour
@@ -21,10 +22,17 @@ public class WheelController : MonoBehaviour
     [SerializeField] private float maxSteer;
     [SerializeField] private float jumpPower;
     private bool jump;//Whether the object should jump at this moment
+    private bool reset;//Can also be set by objects it collides with
+    private bool resettable;//Says whether player is able to reset
+    public static Vector3 ResetPos;//Where the player resets to if they die/press R
+    public static Quaternion ResetRot;//Rotation the player resets to
     void Start()
     {
+        resettable = true;
         //Center of Mass is lowered so it moves more easily on two wheels
         GetComponent<Rigidbody>().centerOfMass += new Vector3(0f, -0.5f, 0f);
+        ResetPos = transform.position;
+        ResetRot = transform.rotation;
     }
 
     
@@ -39,7 +47,12 @@ public class WheelController : MonoBehaviour
                 jump = true;
             }
         }
+        //When R is pressed, everything is reset
+        if(Input.GetKeyDown(KeyCode.R) && resettable) {
+            reset = true;//Is reset during fixed update, because I don't want to mess up the physics
+        }
     }
+        //TODO: Implement a simple additional move forward code to get out of stickage while on the edge of a platform
 
     //Movement occurs here
     void FixedUpdate() {
@@ -61,6 +74,20 @@ public class WheelController : MonoBehaviour
             Vector3 jumpForce = new Vector3(0f, 1f, 0f) * jumpPower;
             GetComponent<Rigidbody>().AddForce(jumpForce,ForceMode.Impulse);
         }
+        if(reset) {
+            GetComponent<Rigidbody>().velocity = Vector3.zero;
+            transform.position = ResetPos;
+            transform.rotation = ResetRot;
+            frontWheel.steerAngle = 0;
+            frontWheel.motorTorque = 0;
+            leftWheel.motorTorque = 0;
+            rightWheel.motorTorque = 0;
+            RotateWheelImage(rightWheelImage, rightWheel);
+            RotateWheelImage(leftWheelImage, leftWheel);
+            RotateWheelImage(frontWheelImage, frontWheel);
+            reset = false;
+            resettable = true;
+        }
     }
 
     //Have the visible form of the wheel match your collider movement
@@ -72,5 +99,25 @@ public class WheelController : MonoBehaviour
         wheel.transform.position = position;
         wheel.transform.rotation = rotation;
         wheel.transform.rotation *= Quaternion.Euler(0f, 0f, 90f);
+    }
+
+    public const float TIME_TO_DIE = 1.5f;//Time it takes for the palyer to die/reset
+    [SerializeField] private Image fadeToBlack;
+    //This Coroutine causes you to reset from death after fading to black
+    public IEnumerator DeathCoroutine() {
+        //Only does stuff if the player is currently able to be reset
+        if(resettable) {
+            resettable = false;
+            float curTime = 0;
+            while(curTime < TIME_TO_DIE) {
+                fadeToBlack.color = new Color(Color.black.r, Color.black.g, Color.black.b, curTime/TIME_TO_DIE);
+                curTime += Time.deltaTime;
+                yield return null;
+            }
+            fadeToBlack.color = Color.black;
+            yield return new WaitForSeconds(0.2f);
+            fadeToBlack.color = new Color(Color.black.r, Color.black.g, Color.black.b, 0);
+            reset = true;
+        }
     }
 }
