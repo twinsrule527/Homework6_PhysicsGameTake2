@@ -5,7 +5,8 @@ using UnityEngine;
 public class EnemyMovement : MonoBehaviour
 {
     //This first vector dictates the size of area that this enemy moves around in, using a character controller
-    [SerializeField] private Vector3[] moveArray;//Radii in the x/y directions
+    [SerializeField] private Vector3[] moveArray;//Locations it is moving towards
+    [SerializeField] private int startTarget;//first target it aims at
     private int currentTarget;//This number says which target the enemy should be currently aiming for
     [SerializeField] private float speed;
     private Vector3 direction;
@@ -13,7 +14,7 @@ public class EnemyMovement : MonoBehaviour
     private CharacterController myController;
     void Start()
     {
-        currentTarget = 0;
+        currentTarget = startTarget;
         direction = Random.insideUnitCircle.normalized;
         myController = GetComponent<CharacterController>();
     }
@@ -30,7 +31,6 @@ public class EnemyMovement : MonoBehaviour
         if(checkPos.magnitude <= distanceChangeDirection) {
             currentTarget = (currentTarget + 1) % moveArray.Length;
         }
-        Debug.Log(checkPos.magnitude);
        if(myController.isGrounded) {
            direction = (moveArray[currentTarget] - transform.position).normalized * speed;
            direction.y = 0;

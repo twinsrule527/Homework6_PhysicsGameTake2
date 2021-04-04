@@ -21,6 +21,8 @@ public class WheelController : MonoBehaviour
     [SerializeField] private float maxMotorBack;
     [SerializeField] private float maxSteer;
     [SerializeField] private float jumpPower;
+    public float speedBoost;//Whether the player has a speed boost from something
+    private const float SPEED_BOOST_AMT = 5f;
     private bool jump;//Whether the object should jump at this moment
     private bool reset;//Can also be set by objects it collides with
     private bool resettable;//Says whether player is able to reset
@@ -39,6 +41,9 @@ public class WheelController : MonoBehaviour
     //Player Input occurs here
     void Update()
     {
+        if(speedBoost > 0) {
+            speedBoost -= Time.deltaTime;
+        }
         rotControl = Input.GetAxis("Horizontal");
         accControl = Input.GetAxis("Vertical");
         //Player can attempt to jump - will check to see if wheels are on the ground
@@ -64,6 +69,12 @@ public class WheelController : MonoBehaviour
         
         frontWheel.steerAngle = steering;
         frontWheel.motorTorque = accControl * maxMotorFront;
+        //If it's speeding, increase the torque
+        if(speedBoost > 0) {
+            leftWheel.motorTorque *= SPEED_BOOST_AMT;
+            rightWheel.motorTorque *= SPEED_BOOST_AMT;
+            frontWheel.motorTorque *= SPEED_BOOST_AMT;
+        }
         RotateWheelImage(rightWheelImage, rightWheel);
         RotateWheelImage(leftWheelImage, leftWheel);
         RotateWheelImage(frontWheelImage, frontWheel);
@@ -87,6 +98,7 @@ public class WheelController : MonoBehaviour
             RotateWheelImage(frontWheelImage, frontWheel);
             reset = false;
             resettable = true;
+            speedBoost = 0.5f;//Gets a very small speed boost when reset
         }
     }
 
