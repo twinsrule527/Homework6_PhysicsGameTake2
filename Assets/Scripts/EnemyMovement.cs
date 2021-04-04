@@ -12,11 +12,14 @@ public class EnemyMovement : MonoBehaviour
     private Vector3 direction;
     private const float GRAVITY = 20f;
     private CharacterController myController;
+    private Animator myAnimator;
     void Start()
     {
         currentTarget = startTarget;
         direction = Random.insideUnitCircle.normalized;
         myController = GetComponent<CharacterController>();
+        myAnimator = GetComponentInChildren<Animator>();
+        myAnimator.speed = speed / 3f;
     }
 
     [SerializeField] private float distanceChangeDirection;//How far enemy should be from target befor ethey change direction (for when issues arise)
@@ -41,6 +44,7 @@ public class EnemyMovement : MonoBehaviour
            direction.y = tempY;
        }
        direction.y -= GRAVITY * Time.fixedDeltaTime;
+       transform.rotation = Quaternion.LookRotation(direction) *Quaternion.Euler(new Vector3(0f, 90f, 0f));
        myController.Move(direction * Time.fixedDeltaTime);
     }
 }

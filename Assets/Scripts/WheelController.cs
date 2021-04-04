@@ -110,7 +110,7 @@ public class WheelController : MonoBehaviour
         collider.GetWorldPose(out position, out rotation);
         wheel.transform.position = position;
         wheel.transform.rotation = rotation;
-        wheel.transform.rotation *= Quaternion.Euler(0f, 0f, 90f);
+        //wheel.transform.rotation *= Quaternion.Euler(0f, 0f, 90f);
     }
 
     public const float TIME_TO_DIE = 1.5f;//Time it takes for the palyer to die/reset
